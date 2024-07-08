@@ -30,11 +30,13 @@ function determineBackgroundColor(dueDate, status) {
 // Todo create a function to create a task card
 function createTaskCard(task) {
     const containerDivEl = $("<div>");
+    
     const classesToAdd = "task-card card draggable " + determineBackgroundColor(task.dueDate, task.status);
     containerDivEl.addClass(classesToAdd);
     containerDivEl.css({
         'margin-bottom': "15px",
-        'width': '18rem'
+        'width': '18rem',
+        'color': "darkgray"
     });
     containerDivEl.attr("data-task-id", task.id);
 
@@ -56,6 +58,9 @@ function createTaskCard(task) {
     const buttonEl = $("<button>");
     buttonEl.addClass("btn btn-danger");
     buttonEl.attr("data-task-id", task.id);
+    buttonEl.css({
+        border: "1px solid white"
+    })
     buttonEl.text("Delete");
 
     console.log("Appending child elements to body");
@@ -96,13 +101,14 @@ function renderTaskList() {
     // $('.draggable').draggable();
 
     /*
-        axis: controls in which direction can the draggable element move
+        axis: controls in which direction can the draggable element move skipped)
         stack: controls the z-index of thedragabble card or else it moves under 
-               other elements on the page.
+               other elements on the page. This workes only if helper !== clone (skipped)
         containement: the boundary witihin which the draggable element can moveBy.
         cursor: change the mouse cursor to a different style when dragging the element.
-        revert: will revert the position of the card back to its original position.
-        opacity: 
+        revert: will revert the position of the card back to its original position. (skipped)
+        zIndex - applies to the helper element
+        helper - creates a clone of the element being dragged.
     */
     // do this here instead of in createTaskCard() when you are dynamically creating the card because
     // at that time the card is not part of the dom as it has not been appended to the swim lane. So the 
@@ -111,7 +117,6 @@ function renderTaskList() {
         .draggable("option", "containment", ".swim-lanes")
         .draggable("option", "opacity", 0.8)
         .draggable("option", "cursor", "crosshair")
-        // .draggable("option", "stack", ".container");
         .draggable("option", "zIndex", "100")
 
         .draggable("option", "helper", function (e) {
@@ -142,21 +147,8 @@ function storeToLocalStorage(tasks) {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function handleFormShow(event) {
-    console.log("Modal shown!");
-
-    // set the error field style do none. 
-    // There was some cases where i noticed that when i closed the modal and reopened it 
-    // the error msg was being displayed. Hence setting the style here too
-    $('#errorMsgRow').attr("class", "row d-none");
-
-
-
-}
 
 // Todo: create a function to handle adding a new task
-/*I am triggering this even for when the modal is show and then adding all the other events.
-*/
 function handleAddTask(event) {
     console.log("Add task event triggered from modal");
 
@@ -196,55 +188,11 @@ function handleAddTask(event) {
     taskDescriptionEl.val("");
 
     console.log("render tasks to the ui");
-    renderTaskList();
     $('#formModal').modal('hide')
-
-    /* 
-    Add event for when the user click on the addTask button. We first check if
-    # none of the fields are empty.
-    # if they are then we display error message and return. 
-    # if all fields are populated then we will store the info in local storage and close the modal
-    
-    */
-    // $("#addTask").on('click', function () {
-
-    //     console.log(`User entered title: ${titleEl.val()} and date: ${taskDateEl.val()}`);
-    //     if (titleEl.val() === "" || taskDateEl.val() === "" || taskDescriptionEl.val() === "") {
-    //         console.log("One or more fields are missing");
-    //         $('#errorMsgRow').attr("class", "row d-block");
-    //         $('#errorMsg').attr("class", "text-danger");
-    //         $('#errorMsg').text("Enter all the fields!");
-    //         return
-    //     }
-    //     const taskInfo = {
-    //         id: generateTaskId(),
-    //         title: titleEl.val(),
-    //         dueDate: taskDateEl.val(),
-    //         status: "to-do",
-    //         description: taskDescriptionEl.val()
-    //     }
-    //     console.log("All fields entered, preparing data to store in local storage");
-    //     let tasks = retrieveFromLocalStorage();
-    //     if (tasks) {
-    //         tasks.push(taskInfo);
-    //     } else {
-    //         tasks = [task];
-    //     }
-    //     storeToLocalStorage(tasks);
-
-    //     //clear fields
-    //     console.log("clearing the text fields");
-    //     titleEl.val("");
-    //     taskDateEl.val("");
-    //     taskDescriptionEl.val("");
-
-    //     console.log("render tasks to the ui");
-    //     renderTaskList();
-    //     $('#formModal').modal('hide')
-    // });
+    renderTaskList();
 }
 
-// Todo: create a function to handle deleting a task
+// create a function to handle deleting a task
 function handleDeleteTask(event) {
     const delBtnEl = event.target;
     console.log(delBtnEl);
@@ -272,7 +220,7 @@ function handleDeleteTask(event) {
     renderTaskList();
 }
 
-// Todo: create a function to handle dropping a task into a new status lane
+// create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
     console.log("event");
     console.log(event);
@@ -280,6 +228,8 @@ function handleDrop(event, ui) {
     console.log(ui);
 
     console.log("Gather the swim lane id where the element was moved to");
+    //This will return to-do/in-progress/done. Make sure to attach the droppable to the correct
+    //div element.
     const swimLaneId = event.target.id;
 
     console.log("Gathering the task id of the task that was moved");
@@ -293,7 +243,7 @@ function handleDrop(event, ui) {
         }
     }
 
-    console.log("Updated locastorage with the latest copy of the data");
+    console.log("Update locastorage with the latest copy of the data");
     storeToLocalStorage(tasks);
 
     console.log("Re-rendering...");
@@ -301,14 +251,18 @@ function handleDrop(event, ui) {
 }
 
 // <----- Event handlers ----->
-//Add event for when the modal is shown
-$('#formModal').on("shown.bs.modal", handleFormShow);
+
+// Add event listener - show.bs.modal which will be triggered just before the modal is shown, 
+// to hide the error msg row.
+$('#formModal').on("show.bs.modal", function () {
+    $('#errorMsgRow').attr("class", "row d-none");
+});
 
 //Add event listener for click event on a card, which will be actionable only if the click
 //is done on the button.
 $(".card").on("click", ".btn-danger", handleDeleteTask);
 
-// Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
+// when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 $(document).ready(function () {
 
     // Render task if it exists in local storage
@@ -320,15 +274,20 @@ $(document).ready(function () {
         changeYear: true
     });
 
+    // Attaching Add task event handler to the button on the modal 
+    $("#addTask").on('click', handleAddTask);
 
-    // Add event listener to the input fields to Reset the error message when user clicks them
+    // Add event listener to the input fields in the modal to hide the error message 
+    // when user clicks them
     $('#tDate').add("#title").add("#tDescription").on('click', function () {
         $('#errorMsgRow').attr("class", "row d-none");
     })
 
-    $("#addTask").on('click', handleAddTask);
-
     // Make the swim lanes droppable
+    /*
+        accept: droppable will accept only elements that have the .draggable class
+        drop: callback function when an element is droped 
+    */
     $(".lane").droppable({
         accept: '.draggable',
         drop: handleDrop
