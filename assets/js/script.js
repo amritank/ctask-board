@@ -30,7 +30,7 @@ function determineBackgroundColor(dueDate, status) {
 // Todo create a function to create a task card
 function createTaskCard(task) {
     const containerDivEl = $("<div>");
-    
+
     const classesToAdd = "task-card card draggable " + determineBackgroundColor(task.dueDate, task.status);
     containerDivEl.addClass(classesToAdd);
     containerDivEl.css({
@@ -177,7 +177,7 @@ function handleAddTask(event) {
     if (tasks) {
         tasks.push(taskInfo);
     } else {
-        tasks = [task];
+        tasks = [taskInfo];
     }
     storeToLocalStorage(tasks);
 
