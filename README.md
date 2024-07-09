@@ -16,7 +16,8 @@ A kanban board implementation to manage tasks.
 4. Upon filling all the fields, the user can click on the Add Task button in the modal and the new task will be added to the To-do list.
 
 5. User can also move the taks between the other lanes (in-progress and done) to reflect the different state of the tasks. 
-![alt_text](assets/images/task-move.png
+
+![alt_text](assets/images/task-move.png)
 
 6. A task when marked done will turn white in color. 
 
